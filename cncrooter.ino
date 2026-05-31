@@ -19,3 +19,38 @@ void setup(){
 void loop(){
   m.readSerial();
 }
+
+
+/*String buffer = "";
+
+void setup() {
+    Serial.begin(115200);
+
+    delay(2000);
+
+    Serial.println("READY");
+}
+
+void loop() {
+    while (Serial.available() > 0) {
+
+        char c = Serial.read();
+
+        // ignore carriage return
+        if (c == '\r')
+            continue;
+
+        // newline = complete message
+        if (c == '\n') {
+
+            Serial.print("Message got: ");
+            Serial.println(buffer);
+
+            buffer = "";
+        }
+        else {
+            buffer += c;
+        }
+    }
+}
+*/
