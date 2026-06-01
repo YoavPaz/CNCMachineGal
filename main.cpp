@@ -10,20 +10,22 @@ void main::setup(int bdrate){
     Serial.println("Started cnc rooter!");
 }
 
-void main::createCommand(Command &command, char* name, ParamDef* params, int paramCount){
+void main::createCommand(Command &command, char* name, ParamDef* params, int paramCount, Action action){
     command.name = name;
     command.params = params;
     command.paramsCount = paramCount;
+    command.action = action;
 }
 
-void main::registerCommand(char* name, ParamDef* params, int paramsCount){
+void main::registerCommand(char* name, ParamDef* params,
+                            int paramsCount, Action action){
     Serial.print("Registering command ");
     Serial.println(name);
     Command cmd;
-    main::createCommand(cmd, name, params, paramsCount);
+    main::createCommand(cmd, name, params, paramsCount, action);
     commands[current_command++] = cmd;
 
-    for (int j = 0; j < current_command; j++){
+    /*for (int j = 0; j < current_command; j++){
         Serial.print("for Command: ");
         Serial.println(commands[j].name);
         for (int i = 0; i < commands[j].paramsCount; i++){
@@ -35,14 +37,14 @@ void main::registerCommand(char* name, ParamDef* params, int paramsCount){
             if (typeE == Error::TypeError) Serial.println("Type error.");
             else Serial.println(typeStr);
         }
-    }
+    }*/
 
     Serial.println("--------------------------");
 }
 
 void main::parseLine(char* line){
     int index = 0;
-    char command[64];
+    char command[4];
     char* command_ptr = command;
 
     main::getArg(line, index, ' ', command_ptr);
@@ -60,21 +62,25 @@ void main::parseLine(char* line){
     Serial.print("Found command name: ");
     Serial.println(cmd.name);
 
+    ParamValue paramValues[5];
+    int currnet_param_num = 0;
     for (int i = 0; i < cmd.paramsCount; i++){
         ParamDef param = cmd.params[i];
         Type type = param.type;
 
-        char paramValues;
         int temp_index = index;
         
         switch (type){
             case Type::Int:
             {
-                char temp[64];
+                char temp[4];
                 char* tempPtr = temp;
 
                 main::getArg(line, temp_index, param.name, tempPtr);
                 int intValue = main::getInt(line, temp_index);
+
+                ParamValue paramValue(param.name, intValue);
+                paramValues[currnet_param_num++] = paramValue;
 
                 Serial.print("Got Int Value: ");
                 Serial.println(intValue);
@@ -83,11 +89,14 @@ void main::parseLine(char* line){
 
             case Type::Float:
             {
-                char temp[64];
+                char temp[4];
                 char* tempPtr = temp;
 
                 main::getArg(line, temp_index, param.name, tempPtr);
                 float floatValue = main::getFloat(line, temp_index);
+                
+                ParamValue paramValue(param.name, floatValue);
+                paramValues[currnet_param_num++] = paramValue;
 
                 Serial.print("Got Float Value: ");
                 Serial.println(floatValue);
@@ -96,6 +105,8 @@ void main::parseLine(char* line){
         }
         
     }
+
+    cmd.action(paramValues, currnet_param_num);
 }
 
 int main::getInt(char* line, int &index){
@@ -187,7 +198,7 @@ void main::getArg(char* line, int &c_index, char c_end, char* &out)
 
 void main::readSerial()
 {
-    static char buffer[64];
+    static char buffer[128];
     static int currentBuffer = 0;
     static bool ignoreUntilNewline = false;
 
