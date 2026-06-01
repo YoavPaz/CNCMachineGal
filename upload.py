@@ -9,7 +9,7 @@ import sys
 # =========================
 
 FQBN = "arduino:avr:uno"
-PORT = "/dev/ttyACM0"
+PORT = "/dev/cu.usbmodem2017_2_251"
 BAUDRATE = 115200
 PROJECT_DIR = "."
 
