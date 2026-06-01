@@ -38,9 +38,38 @@ struct ParamDef {
     }
 };
 
+struct ParamValue {
+    char name;
+    Type type;
+
+    union {
+        int IntValue;
+        float FloatValue;
+    } value;
+
+    ParamValue() {}
+
+    ParamValue(char n, int v)
+    {
+        name = n;
+        type = Type::Int;
+        value.IntValue = v;
+    }
+
+    ParamValue(char n, float v)
+    {
+        name = n;
+        type = Type::Float;
+        value.FloatValue = v;
+    }
+};
+
+typedef void (*Action)(ParamValue*, int);
+
 struct Command {
     char* name;
     ParamDef* params;
+    Action action;
     int paramsCount;
 };
 
@@ -49,16 +78,25 @@ class main{
   main();
   void setup(int bdrate);
   void readSerial();
-  void registerCommand(char* name, ParamDef* params, int paramsCount);
+  void registerCommand(
+    char* name,
+    ParamDef* params, 
+    int paramsCount,
+    Action action
+    );
   void parseLine(char* line);
   void getArg(char* line, int &c_index, char c_end, char* &out);
-  void createCommand(Command &command, char* name, ParamDef* params,
-                    int paramCount);
+  void createCommand(
+                    Command &command, char* name,
+                    ParamDef* params,
+                    int paramCount, 
+                    Action action
+                    );
   void findCommand(char* command, Command &out, Error* err = nullptr);
   float getFloat(char* line, int &index);
   int getInt(char* line, int &index);
   private:
-  Command commands[128];
+  Command commands[10];
   int current_command = 0;
 };
 
